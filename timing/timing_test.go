@@ -24,7 +24,7 @@ func TestSingleTimer(t *testing.T) {
 		wrapped.ServeHTTP(nil, nil)
 	}
 
-	t.Log(timer.Avg())
+	timer.Avg()
 	timer.Reset()
 	timer.Count()
 }
