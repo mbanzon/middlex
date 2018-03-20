@@ -1,9 +1,9 @@
 package counting
 
 import (
+	"math/rand"
 	"net/http"
 	"testing"
-	"time"
 )
 
 func TestSingleCounter(t *testing.T) {
@@ -14,25 +14,18 @@ func TestSingleCounter(t *testing.T) {
 	wrapped := wrapper(handler)
 
 	for i := 0; i < 10; i++ {
-		// count := rand.Int63n(10)
-		// t.Log(count)
-		// t.Log(counter.Count())
-		// for c := int64(0); c < count; i++ {
-		wrapped.ServeHTTP(nil, nil)
+		count := rand.Int63n(10)
+		for c := int64(0); c < count; c++ {
+			wrapped.ServeHTTP(nil, nil)
+		}
 
-		// }
+		if count != counter.Count() {
+			t.Fatal("unexpected count:", count, "vs", counter.Count())
+		}
 
+		counter.Reset()
+		if counter.Count() != 0 {
+			t.Fatal("expected count to be zero:", counter.Count())
+		}
 	}
-
-	time.Sleep(time.Second)
-
-	if 10 != counter.Count() {
-		t.Fatal("unexpected count:", 10, "vs", counter.Count())
-	}
-
-	counter.Reset()
-	if counter.Count() != 0 {
-		t.Fatal("expected count to be zero:", counter.Count())
-	}
-
 }
