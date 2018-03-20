@@ -26,12 +26,10 @@ func New(timers ...*Timer) middlex.Middleware {
 			h.ServeHTTP(w, r)
 			end := time.Now()
 			for _, t := range timers {
-				go func(timer *Timer) {
-					timer.mutex.Lock()
-					timer.count++
-					timer.total += end.Sub(start)
-					timer.mutex.Unlock()
-				}(t)
+				t.mutex.Lock()
+				t.count++
+				t.total += end.Sub(start)
+				t.mutex.Unlock()
 			}
 		})
 	}
