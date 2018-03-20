@@ -1,6 +1,7 @@
 package timing
 
 import (
+	"math"
 	"net/http"
 	"sync"
 	"time"
@@ -8,10 +9,14 @@ import (
 	"github.com/mbanzon/middlex"
 )
 
+var (
+	resetValue = time.Duration(math.MaxInt64)
+)
+
 type Timer struct {
 	count int64
 	total time.Duration
-	lock  sync.Mutex
+	mutex *sync.Mutex
 }
 
 func New(timers ...*Timer) middlex.Middleware {
@@ -20,42 +25,46 @@ func New(timers ...*Timer) middlex.Middleware {
 			start := time.Now()
 			h.ServeHTTP(w, r)
 			end := time.Now()
-			go func() {
-				for _, timer := range timers {
-					d := end.Sub(start)
-
-					timer.lock.Lock()
+			for _, t := range timers {
+				go func(timer *Timer) {
+					timer.mutex.Lock()
 					timer.count++
-					timer.total += d
-					timer.lock.Unlock()
-				}
-			}()
+					timer.total += end.Sub(start)
+					timer.mutex.Unlock()
+				}(t)
+			}
 		})
 	}
 }
 
-func (t *Timer) Avg() time.Duration {
-	t.lock.Lock()
-	defer t.lock.Unlock()
-
-	if t.count == 0 {
-		return 0
+func NewTimer() *Timer {
+	t := &Timer{
+		mutex: &sync.Mutex{},
 	}
 
-	return t.total / time.Duration(t.count)
+	return t
+}
+
+func (t *Timer) Avg() time.Duration {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	if t.count != 0 {
+		return t.total / time.Duration(t.count)
+	}
+
+	return 0
 }
 
 func (t *Timer) Count() int64 {
-	t.lock.Lock()
-	defer t.lock.Unlock()
-
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
 	return t.count
 }
 
 func (t *Timer) Reset() {
-	t.lock.Lock()
-	defer t.lock.Unlock()
-
+	t.mutex.Lock()
 	t.count = 0
 	t.total = 0
+	t.mutex.Unlock()
 }

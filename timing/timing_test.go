@@ -11,12 +11,11 @@ func TestSingleTimer(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// d := time.Duration(rand.Int63n(50)) * time.Millisecond
-		d := time.Millisecond * 50
+		d := time.Duration(rand.Int63n(100)) * time.Millisecond
 		time.Sleep(d)
 	})
 
-	timer := &Timer{}
+	timer := NewTimer()
 	wrapper := New(timer)
 	wrapped := wrapper(handler)
 
@@ -24,7 +23,6 @@ func TestSingleTimer(t *testing.T) {
 		wrapped.ServeHTTP(nil, nil)
 	}
 
-	timer.Avg()
-	timer.Reset()
-	timer.Count()
+	t.Log(timer.Avg())
+	t.Log(timer.Count())
 }
