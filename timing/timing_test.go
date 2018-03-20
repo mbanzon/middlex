@@ -19,10 +19,13 @@ func TestSingleTimer(t *testing.T) {
 	wrapper := New(timer)
 	wrapped := wrapper(handler)
 
+	t.Log(timer.Avg())
+
 	for i := 0; i < 100; i++ {
 		wrapped.ServeHTTP(nil, nil)
 	}
 
 	t.Log(timer.Avg())
 	t.Log(timer.Count())
+	timer.Reset()
 }
