@@ -17,11 +17,9 @@ func New(counters ...*Counter) middlex.Middleware {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			h.ServeHTTP(w, r)
 			for _, c := range counters {
-				go func(counter *Counter) {
-					c.mutex.Lock()
-					c.count++
-					c.mutex.Unlock()
-				}(c)
+				c.mutex.Lock()
+				c.count++
+				c.mutex.Unlock()
 			}
 		})
 	}
