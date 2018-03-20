@@ -14,7 +14,7 @@ func TestSingleCounter(t *testing.T) {
 	wrapped := wrapper(handler)
 
 	for i := 0; i < 10; i++ {
-		count := rand.Int63n(10)
+		count := rand.Int63n(1000) + 1
 		for c := int64(0); c < count; c++ {
 			wrapped.ServeHTTP(nil, nil)
 		}
