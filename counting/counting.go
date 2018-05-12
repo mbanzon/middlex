@@ -7,11 +7,13 @@ import (
 	"github.com/mbanzon/middlex"
 )
 
+// Counter allows wrapping of handlers to enable counting of requests.
 type Counter struct {
 	count int64
 	mutex *sync.Mutex
 }
 
+// Middleware returns the middlex.Middleware from this Counter.
 func (c *Counter) Middleware() middlex.Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -23,6 +25,7 @@ func (c *Counter) Middleware() middlex.Middleware {
 	}
 }
 
+// New creates a new Counter
 func New() *Counter {
 	c := &Counter{
 		mutex: &sync.Mutex{},
@@ -31,12 +34,15 @@ func New() *Counter {
 	return c
 }
 
+// Count returns the current count - the number of requests made through
+// the middleware.
 func (c *Counter) Count() int64 {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	return c.count
 }
 
+// Reset returns the current count (as Count()) but also resets the counter.
 func (c *Counter) Reset() int64 {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
