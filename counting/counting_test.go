@@ -9,8 +9,8 @@ import (
 func TestSingleCounter(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
-	counter := NewCounter()
-	wrapper := New(counter)
+	counter := New()
+	wrapper := counter.Middleware()
 	wrapped := wrapper(handler)
 
 	for i := 0; i < 10; i++ {
