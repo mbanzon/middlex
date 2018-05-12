@@ -15,8 +15,8 @@ func TestSingleTimer(t *testing.T) {
 		time.Sleep(d)
 	})
 
-	timer := NewTimer()
-	wrapper := New(timer)
+	timer := New()
+	wrapper := timer.Middleware()
 	wrapped := wrapper(handler)
 
 	t.Log(timer.Avg())
@@ -25,7 +25,5 @@ func TestSingleTimer(t *testing.T) {
 		wrapped.ServeHTTP(nil, nil)
 	}
 
-	t.Log(timer.Avg())
-	t.Log(timer.Count())
 	timer.Reset()
 }

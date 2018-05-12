@@ -19,50 +19,49 @@ type Timer struct {
 	mutex *sync.Mutex
 }
 
-func New(timers ...*Timer) middlex.Middleware {
+func (t *Timer) Middleware() middlex.Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 			h.ServeHTTP(w, r)
 			end := time.Now()
-			for _, t := range timers {
-				t.mutex.Lock()
-				t.count++
-				t.total += end.Sub(start)
-				t.mutex.Unlock()
-			}
+			t.mutex.Lock()
+			t.count++
+			t.total += end.Sub(start)
+			t.mutex.Unlock()
 		})
 	}
 }
 
-func NewTimer() *Timer {
+func New(configs ...ConfigFunc) *Timer {
 	t := &Timer{
 		mutex: &sync.Mutex{},
+	}
+
+	for _, c := range configs {
+		c(t)
 	}
 
 	return t
 }
 
-func (t *Timer) Avg() time.Duration {
+func (t *Timer) Avg() (int64, time.Duration) {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 
 	if t.count != 0 {
-		return t.total / time.Duration(t.count)
+		return t.count, t.total / time.Duration(t.count)
 	}
 
-	return 0
+	return t.count, 0
 }
 
-func (t *Timer) Count() int64 {
+func (t *Timer) Reset() (int64, time.Duration) {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
-	return t.count
-}
 
-func (t *Timer) Reset() {
-	t.mutex.Lock()
+	tmpC, tmpAvg := t.count, t.total
 	t.count = 0
 	t.total = 0
-	t.mutex.Unlock()
+	return tmpC, tmpAvg
 }
