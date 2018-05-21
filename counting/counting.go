@@ -13,6 +13,8 @@ type Counter struct {
 	mutex *sync.Mutex
 }
 
+type ConfigFunc func(c *Counter)
+
 // Middleware returns the middlex.Middleware from this Counter.
 func (c *Counter) Middleware() middlex.Middleware {
 	return func(h http.Handler) http.Handler {
@@ -26,9 +28,13 @@ func (c *Counter) Middleware() middlex.Middleware {
 }
 
 // New creates a new Counter
-func New() *Counter {
+func New(configs ...ConfigFunc) *Counter {
 	c := &Counter{
 		mutex: &sync.Mutex{},
+	}
+
+	for _, config := range configs {
+		config(c)
 	}
 
 	return c
