@@ -10,15 +10,11 @@ import (
 func TestEmitter(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
-	counter := New()
-	wrapper := counter.Middleware()
-	wrapped := wrapper(handler)
-
 	counts := 0
 	signal := make(chan bool)
 	var expectedCounts int64
 
-	counter.Emit(500*time.Millisecond, func(now time.Time, c int64) {
+	counter := New(WithEmitter(func(now time.Time, c int64) {
 		if counts == 1 {
 			<-signal
 		}
@@ -29,7 +25,10 @@ func TestEmitter(t *testing.T) {
 
 		counts++
 		signal <- false
-	})
+	}, 500*time.Millisecond))
+
+	wrapper := counter.Middleware()
+	wrapped := wrapper(handler)
 
 	<-signal
 
@@ -45,18 +44,13 @@ func TestEmitter(t *testing.T) {
 func TestResetEmitter(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
-	counter := New()
-	wrapper := counter.Middleware()
-	wrapped := wrapper(handler)
-
-	done := false
-
 	var totalCount int64
 	var expectedCounts int64
 
+	done := false
 	signal := make(chan bool)
 
-	counter.EmitReset(10*time.Millisecond, func(now time.Time, c int64) {
+	counter := New(WithResetEmitter(func(now time.Time, c int64) {
 		totalCount += c
 		if done {
 			if totalCount != expectedCounts {
@@ -64,7 +58,10 @@ func TestResetEmitter(t *testing.T) {
 			}
 			signal <- false
 		}
-	})
+	}, 10*time.Millisecond))
+
+	wrapper := counter.Middleware()
+	wrapped := wrapper(handler)
 
 	expectedCounts = rand.Int63n(1000) + 1
 	for c := int64(0); c < expectedCounts; c++ {
