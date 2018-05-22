@@ -9,6 +9,8 @@ import (
 	"github.com/mbanzon/middlex"
 )
 
+// Cors holds the functions and data configured and provide the middleware
+// used for CORS (Cross-origin resource sharing).
 type Cors struct {
 	allowedOrigins []string
 	allowedHeaders []string
@@ -16,8 +18,13 @@ type Cors struct {
 	maxAge         time.Duration
 }
 
+// ConfigFunc is the type of function used to configure the Cors
+// instance. The library provide various functions that return ConfigFunc
+// compatible functions.
 type ConfigFunc func(*Cors)
 
+// New creates a new Cors instance that is configured with the given
+// ConfigFunc.
 func New(configs ...ConfigFunc) *Cors {
 	c := &Cors{}
 
@@ -28,6 +35,9 @@ func New(configs ...ConfigFunc) *Cors {
 	return c
 }
 
+// Middleware returns a middlex.Middleware that uses the Cors instance
+// to provide a wrapper around a http.Handler that adds the headers needed
+// (based on the configuration).
 func (c *Cors) Middleware() middlex.Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -54,24 +64,34 @@ func (c *Cors) Middleware() middlex.Middleware {
 	}
 }
 
+// WithOrigins returns a ConfigFunc that configures the Cors to output a
+// header that signals that only requests from the given hosts are accepted.
 func WithOrigins(origins ...string) ConfigFunc {
 	return func(c *Cors) {
 		c.allowedOrigins = origins
 	}
 }
 
+// WithMethods returns a ConfigFunc that configures the Cors to output
+// a header that signals that only requests with one of the given methods
+// are accepted.
 func WithMethods(methods ...string) ConfigFunc {
 	return func(c *Cors) {
 		c.allowedMethods = methods
 	}
 }
 
+// WithMaxAge returns a ConfigFunc that configures the Cors to output
+// a header that signals that the CORS information (optained from a
+// request method OPTIONS) could be cached for the given amount of time.
 func WithMaxAge(age time.Duration) ConfigFunc {
 	return func(c *Cors) {
 		c.maxAge = age
 	}
 }
 
+// WithHeaders returns a ConfigFunc that configures the Cors to output
+// a header that signals that only the given headers are accepted.
 func WithHeaders(headers ...string) ConfigFunc {
 	return func(c *Cors) {
 		c.allowedHeaders = headers
