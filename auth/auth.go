@@ -162,7 +162,7 @@ func (a *Authentication) Middleware() middlex.Middleware {
 			hasAuthHeader, token := a.tokenExFn(r)
 
 			if hasAuthHeader {
-				if a.logoutFn != nil && r.RequestURI == a.logoutPath {
+				if a.logoutFn != nil && r.RequestURI == a.logoutPath && r.Method == http.MethodGet {
 					a.logoutFn(token)
 					return
 				}
