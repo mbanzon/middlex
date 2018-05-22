@@ -135,7 +135,7 @@ func WithExcludedPrefixes(prefixes ...string) ConfigFunc {
 func (a *Authentication) Middleware() middlex.Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if a.loginFn != nil && r.RequestURI == a.loginPath {
+			if a.loginFn != nil && r.RequestURI == a.loginPath && r.Method == http.MethodPost {
 				authorized, token := a.loginFn(r)
 				if !authorized {
 					http.Error(w, "authorization failed", http.StatusUnauthorized)
