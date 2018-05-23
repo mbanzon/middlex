@@ -27,7 +27,7 @@ func (c *Counter) Middleware() middlex.Middleware {
 	}
 }
 
-// New creates a new Counter
+// New creates a new Counter with the given configuration applied.
 func New(configs ...ConfigFunc) *Counter {
 	c := &Counter{
 		mutex: &sync.Mutex{},
