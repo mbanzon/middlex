@@ -8,7 +8,7 @@ type MiddlewareFactory interface {
 	Middleware() Middleware
 }
 
-func Wrapper(factories ...MiddlewareFactory) Middleware {
+func Combine(factories ...MiddlewareFactory) Middleware {
 	return func(h http.Handler) http.Handler {
 		wrapped := h
 		for _, f := range factories {
