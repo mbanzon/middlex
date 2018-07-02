@@ -17,5 +17,5 @@ func (n *NoCache) Middleware() middlex.Middleware {
 	noCacheHeaders["Pragma"] = "no-cache"
 	noCacheHeaders["Expires"] = "0"
 
-	return header.New(noCacheHeaders).Middleware()
+	return header.New(header.WithStaticHeaders(noCacheHeaders)).Middleware()
 }
