@@ -15,17 +15,23 @@ type Header struct {
 	dynamicHeaderFuncs []DynamicHeaderFunction
 }
 
+type ConfigFunc func(*Header)
+
 // DynamicHeaderFunction is the signature of the functions that can be given
 // to resolve header values dynamically.
 type DynamicHeaderFunction func(r *http.Request) (header, value string)
 
 // New creates a new Header with the given static headers and the given
 // dynamic header functions.
-func New(headers map[string]string, headerFuncs ...DynamicHeaderFunction) *Header {
-	return &Header{
-		staticHeaders:      headers,
-		dynamicHeaderFuncs: headerFuncs,
+func New(config ...ConfigFunc) *Header {
+	h := &Header{
+		staticHeaders:      make(map[string]string),
+		dynamicHeaderFuncs: nil,
 	}
+	for _, c := range config {
+		c(h)
+	}
+	return h
 }
 
 // Middleware returns the middlex.Middleware for the Header that can be
@@ -42,5 +48,25 @@ func (hm *Header) Middleware() middlex.Middleware {
 			}
 			h.ServeHTTP(w, r)
 		})
+	}
+}
+
+func WithDynamicHeaderFunc(dFn DynamicHeaderFunction) ConfigFunc {
+	return func(h *Header) {
+		h.dynamicHeaderFuncs = append(h.dynamicHeaderFuncs, dFn)
+	}
+}
+
+func WithStaticHeader(header, value string) ConfigFunc {
+	return func(h *Header) {
+		h.staticHeaders[header] = value
+	}
+}
+
+func WithStaticHeaders(headers map[string]string) ConfigFunc {
+	return func(h *Header) {
+		for header, value := range headers {
+			h.staticHeaders[header] = value
+		}
 	}
 }
