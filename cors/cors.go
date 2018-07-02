@@ -51,7 +51,7 @@ func (c *Cors) Middleware() middlex.Middleware {
 				w.Header().Add("Access-Control-Allow-Headers", strings.Join(c.allowedHeaders, ", "))
 			}
 
-			if r.Method == http.MethodOptions {
+			if r != nil && r.Method == http.MethodOptions {
 				if c.maxAge > 0 {
 					w.Header().Add("Access-Control-Max-Age", fmt.Sprint(int(c.maxAge.Seconds())))
 				}
