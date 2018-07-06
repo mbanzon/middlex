@@ -32,6 +32,30 @@ func New(configs ...ConfigFunc) *UserCount {
 	return u
 }
 
+func (u *UserCount) GetUserCount() int64 {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+	return int64(len(u.counts))
+}
+
+func (u *UserCount) GetCount(user string) int64 {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+	return u.counts[user]
+}
+
+func (u *UserCount) Reset(user string) {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+	u.counts[user] = 0
+}
+
+func (u *UserCount) ResetAll() {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+	u.counts = make(map[string]int64)
+}
+
 func (u *UserCount) Middleware() middlex.Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
