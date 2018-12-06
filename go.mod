@@ -1,1 +1,1 @@
-module github.com/mbanzon/middlex/v0
+module github.com/mbanzon/middlex
