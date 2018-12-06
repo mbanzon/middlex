@@ -1,14 +1,23 @@
 package nocache
 
 import (
+	"net/http"
+
 	"github.com/mbanzon/middlex"
 	"github.com/mbanzon/middlex/header"
 )
 
-type NoCache struct{}
+type ConfigFunc func(*NoCache)
 
-func New() *NoCache {
-	return &NoCache{}
+type NoCache struct {
+}
+
+func New(config ...ConfigFunc) *NoCache {
+	nc := &NoCache{}
+	for _, c := range config {
+		c(nc)
+	}
+	return nc
 }
 
 func (n *NoCache) Middleware() middlex.Middleware {
@@ -17,5 +26,10 @@ func (n *NoCache) Middleware() middlex.Middleware {
 	noCacheHeaders["Pragma"] = "no-cache"
 	noCacheHeaders["Expires"] = "0"
 
-	return header.New(header.WithStaticHeaders(noCacheHeaders)).Middleware()
+	return header.New(header.WithDynamicMultiHeaderFunc(func(r *http.Request) (headers map[string]string) {
+		if r.Method != http.MethodOptions {
+			return noCacheHeaders
+		}
+		return nil
+	})).Middleware()
 }

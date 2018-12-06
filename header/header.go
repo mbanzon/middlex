@@ -11,8 +11,9 @@ import (
 // headers and dynamic headers. Static headers are fixed value and dynamic
 // headers are resolved at call time.
 type Header struct {
-	staticHeaders      map[string]string
-	dynamicHeaderFuncs []DynamicHeaderFunction
+	staticHeaders           map[string]string
+	dynamicHeaderFuncs      []DynamicHeaderFunction
+	dynamicMultiHeaderFuncs []DynamicMultiHeaderFunction
 }
 
 type ConfigFunc func(*Header)
@@ -20,6 +21,8 @@ type ConfigFunc func(*Header)
 // DynamicHeaderFunction is the signature of the functions that can be given
 // to resolve header values dynamically.
 type DynamicHeaderFunction func(r *http.Request) (header, value string)
+
+type DynamicMultiHeaderFunction func(r *http.Request) (headers map[string]string)
 
 // New creates a new Header with the given static headers and the given
 // dynamic header functions.
@@ -46,6 +49,12 @@ func (hm *Header) Middleware() middlex.Middleware {
 				header, value := hFn(r)
 				w.Header().Add(header, value)
 			}
+			for _, hMFn := range hm.dynamicMultiHeaderFuncs {
+				headers := hMFn(r)
+				for h, v := range headers {
+					w.Header().Add(h, v)
+				}
+			}
 			h.ServeHTTP(w, r)
 		})
 	}
@@ -54,6 +63,12 @@ func (hm *Header) Middleware() middlex.Middleware {
 func WithDynamicHeaderFunc(dFn DynamicHeaderFunction) ConfigFunc {
 	return func(h *Header) {
 		h.dynamicHeaderFuncs = append(h.dynamicHeaderFuncs, dFn)
+	}
+}
+
+func WithDynamicMultiHeaderFunc(dMFn DynamicMultiHeaderFunction) ConfigFunc {
+	return func(h *Header) {
+		h.dynamicMultiHeaderFuncs = append(h.dynamicMultiHeaderFuncs, dMFn)
 	}
 }
 
