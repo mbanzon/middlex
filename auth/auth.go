@@ -80,6 +80,13 @@ func WithHeaderTokenExtraction(name string) ConfigFunc {
 	}
 }
 
+// WithAuthurizationHeaderTokenExtraction creates as ConfigFunc that
+// configures the Authentication to extract the authorization token
+// from the Authorization header.
+func WithAuthurizationHeaderTokenExtraction() ConfigFunc {
+	return WithHeaderTokenExtraction("Authorization")
+}
+
 // WithCheckFunc creates a ConfigFunc that configures an Authentication
 // instance to use the given CheckFunc.
 func WithCheckFunc(checkFn CheckFunc) ConfigFunc {
