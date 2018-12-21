@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -34,15 +35,16 @@ type tokenExtractFunc func(*http.Request) (found bool, token string)
 // Authentication holds the functions and data configured and provide
 // the middleware used for authentication.
 type Authentication struct {
-	loginPath        string
-	loginFn          LoginFunc
-	logoutPath       string
-	logoutFn         LogoutFunc
-	checkFn          CheckFunc
-	excludedPaths    []string
-	excludedPrefixes []string
-	tokenExFn        tokenExtractFunc
-	acceptOptions    bool
+	loginPath           string
+	loginFn             LoginFunc
+	logoutPath          string
+	logoutFn            LogoutFunc
+	checkFn             CheckFunc
+	excludedPaths       []string
+	excludedPrefixes    []string
+	tokenExFn           tokenExtractFunc
+	acceptOptions       bool
+	loginResponsePacker LoginResponsePackerFunc
 }
 
 // New constructs a new Authentication instance and applies the configuration
@@ -50,7 +52,8 @@ type Authentication struct {
 // (expected to hold a "Bearer " prefix).
 func New(config ...ConfigFunc) *Authentication {
 	a := &Authentication{
-		tokenExFn: extractBearerToken,
+		tokenExFn:           extractBearerToken,
+		loginResponsePacker: defaultLoginResponsePacker,
 	}
 	for _, confFn := range config {
 		confFn(a)
@@ -74,6 +77,45 @@ func WithOptionsAcceptance() ConfigFunc {
 	return func(a *Authentication) {
 		a.acceptOptions = true
 	}
+}
+
+func WithLoginResponsePacker(fn LoginResponsePackerFunc) ConfigFunc {
+	return func(a *Authentication) {
+		a.loginResponsePacker = fn
+	}
+}
+
+func WithJSONLoginResponsePacker(tokenField string) ConfigFunc {
+	return func(a *Authentication) {
+		a.loginResponsePacker = func(authorized bool, token string, w http.ResponseWriter) {
+			if !authorized {
+				http.Error(w, "authorization failed", http.StatusUnauthorized)
+				return
+			}
+
+			envelope := make(map[string]string)
+			envelope[tokenField] = token
+
+			data, err := json.Marshal(envelope)
+			if err != nil {
+				http.Error(w, "internal server error", http.StatusInternalServerError)
+				return
+			}
+
+			w.Write(data) // ignoring error here?
+		}
+	}
+}
+
+type LoginResponsePackerFunc func(authorized bool, token string, w http.ResponseWriter)
+
+func defaultLoginResponsePacker(authorized bool, token string, w http.ResponseWriter) {
+	if !authorized {
+		http.Error(w, "authorization failed", http.StatusUnauthorized)
+		return
+	}
+	fmt.Fprint(w, token)
+	return
 }
 
 // WithHeaderTokenExtraction creates as ConfigFunc that configures the
@@ -156,11 +198,7 @@ func (a *Authentication) Middleware() middlex.Middleware {
 
 			if a.loginFn != nil && r.RequestURI == a.loginPath && r.Method == http.MethodPost {
 				authorized, token := a.loginFn(r)
-				if !authorized {
-					http.Error(w, "authorization failed", http.StatusUnauthorized)
-					return
-				}
-				fmt.Fprint(w, token)
+				a.loginResponsePacker(authorized, token, w)
 				return
 			}
 
