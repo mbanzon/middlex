@@ -42,6 +42,7 @@ type Authentication struct {
 	excludedPaths    []string
 	excludedPrefixes []string
 	tokenExFn        tokenExtractFunc
+	acceptOptions    bool
 }
 
 // New constructs a new Authentication instance and applies the configuration
@@ -66,6 +67,12 @@ func WithCookieTokenExtraction(name string) ConfigFunc {
 		a.tokenExFn = func(r *http.Request) (bool, string) {
 			return extractCookieToken(name, r)
 		}
+	}
+}
+
+func WithOptionsAcceptance() ConfigFunc {
+	return func(a *Authentication) {
+		a.acceptOptions = true
 	}
 }
 
@@ -135,6 +142,11 @@ func WithExcludedPrefixes(prefixes ...string) ConfigFunc {
 func (a *Authentication) Middleware() middlex.Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if a.acceptOptions && r.Method == http.MethodOptions {
+				h.ServeHTTP(w, r)
+				return
+			}
+
 			if a.loginFn != nil && r.RequestURI == a.loginPath && r.Method == http.MethodPost {
 				authorized, token := a.loginFn(r)
 				if !authorized {
