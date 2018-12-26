@@ -66,3 +66,29 @@ func TestDynamicHeaderFunc(t *testing.T) {
 		t.Fatal("Unexpected header value:", headerValue)
 	}
 }
+
+func TestDynamicMultiHeaderFunc(t *testing.T) {
+	hFn := func(r *http.Request) (headers map[string]string) {
+		tmp := make(map[string]string)
+		tmp["MyHeader1"] = "MyValue1"
+		tmp["MyHeader2"] = "MyValue2"
+		return tmp
+	}
+
+	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+	hMw := New(WithDynamicMultiHeaderFunc(hFn)).Middleware()
+	h := hMw(emptyHandler)
+
+	recorder := httptest.NewRecorder()
+	h.ServeHTTP(recorder, nil)
+
+	headerValue1 := recorder.Header().Get("MyHeader1")
+	if headerValue1 != "MyValue1" {
+		t.Fatal("Unexpected header value:", headerValue1)
+	}
+
+	headerValue2 := recorder.Header().Get("MyHeader2")
+	if headerValue2 != "MyValue2" {
+		t.Fatal("Unexpected header value:", headerValue2)
+	}
+}
