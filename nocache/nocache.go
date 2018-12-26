@@ -7,16 +7,10 @@ import (
 	"github.com/mbanzon/middlex/header"
 )
 
-type ConfigFunc func(*NoCache)
+type NoCache struct{}
 
-type NoCache struct {
-}
-
-func New(config ...ConfigFunc) *NoCache {
+func New() *NoCache {
 	nc := &NoCache{}
-	for _, c := range config {
-		c(nc)
-	}
 	return nc
 }
 
