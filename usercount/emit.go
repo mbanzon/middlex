@@ -12,8 +12,8 @@ func WithEmitFunction(cef CountEmitFunc, every time.Duration) ConfigFunc {
 			tick := time.Tick(every)
 			for now := range tick {
 				u.mutex.Lock()
-				defer u.mutex.Unlock()
 				cef(now, int64(len(u.counts)))
+				u.mutex.Unlock()
 			}
 		}()
 	}
