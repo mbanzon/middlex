@@ -43,25 +43,24 @@ func WithDefaultHandler(h http.Handler) ConfigFunc {
 	}
 }
 
-func (sh *Splitter) Handler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.RequestURI, sh.prefix) {
-			originalURI := r.RequestURI
-			r.RequestURI = r.RequestURI[len(sh.prefix):]
-			path := popURIArg(r)
-			hitHandler := false
-			for p, h := range sh.splits {
-				if path == p {
-					hitHandler = true
-					h.ServeHTTP(w, r)
-				}
-			}
-			r.RequestURI = originalURI
-			if !hitHandler && sh.defaultHandler != nil {
-				sh.defaultHandler.ServeHTTP(w, r)
+func (sh *Splitter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if strings.HasPrefix(r.RequestURI, sh.prefix) {
+		originalURI := r.RequestURI
+		r.RequestURI = r.RequestURI[len(sh.prefix):]
+		path := popURIArg(r)
+		hitHandler := false
+		for p, h := range sh.splits {
+			if path == p {
+				hitHandler = true
+				h.ServeHTTP(w, r)
+				// TODO: should we break here?
 			}
 		}
-	})
+		r.RequestURI = originalURI
+		if !hitHandler && sh.defaultHandler != nil {
+			sh.defaultHandler.ServeHTTP(w, r)
+		}
+	}
 }
 
 func popURIArg(r *http.Request) string {
