@@ -3,8 +3,8 @@ package nocache
 import (
 	"net/http"
 
-	"github.com/mbanzon/middlex"
-	"github.com/mbanzon/middlex/header"
+	"github.com/mbanzon/middlex/v1"
+	"github.com/mbanzon/middlex/v1/header"
 )
 
 type NoCache struct{}

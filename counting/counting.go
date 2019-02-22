@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/mbanzon/middlex"
+	"github.com/mbanzon/middlex/v1"
 )
 
 // Counter allows wrapping of handlers to enable counting of requests.

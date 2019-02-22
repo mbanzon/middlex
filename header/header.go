@@ -3,7 +3,7 @@ package header
 import (
 	"net/http"
 
-	"github.com/mbanzon/middlex"
+	"github.com/mbanzon/middlex/v1"
 )
 
 // Header allows wrapping of handlers to provide a structured way of adding

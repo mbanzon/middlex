@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mbanzon/middlex"
+	"github.com/mbanzon/middlex/v1"
 )
 
 // Cors holds the functions and data configured and provide the middleware
