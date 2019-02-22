@@ -48,6 +48,25 @@ func TestOptionsAccess(t *testing.T) {
 	}
 }
 
+func TestFoo(t *testing.T) {
+	count := 0
+	wrapped := setupWrapped(t, func() {
+		count++
+	},
+		WithOptionsAcceptance())
+	req, _ := http.NewRequest(http.MethodOptions, "", nil)
+	w := httptest.NewRecorder()
+	wrapped.ServeHTTP(w, req)
+
+	if count != 1 {
+		t.Fatal()
+	}
+
+	if w.Code != http.StatusOK {
+		t.Fatal()
+	}
+}
+
 func TestWithCookieExtractor(t *testing.T) {
 	c := WithCookieTokenExtraction("my-cookie")
 	wrapped, w, r := setupEmptyWrapped(t, http.MethodGet, "/", nil, c)
