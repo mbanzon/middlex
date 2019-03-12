@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/mbanzon/middlex/v1"
+	"github.com/mbanzon/middlex/v2"
 )
 
 type UserCount struct {

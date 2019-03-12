@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mbanzon/middlex/v1"
+	"github.com/mbanzon/middlex/v2"
 )
 
 var (
