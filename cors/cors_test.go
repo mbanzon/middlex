@@ -10,8 +10,7 @@ import (
 
 func TestCreation(t *testing.T) {
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	corsMw := New().Middleware()
-	wrapped := corsMw(emptyHandler)
+	wrapped := New().Wrap(emptyHandler)
 	recorder := httptest.NewRecorder()
 	wrapped.ServeHTTP(recorder, nil)
 	validateHeaders("", "", "", "", recorder, t)
@@ -19,8 +18,7 @@ func TestCreation(t *testing.T) {
 
 func TestOrigin(t *testing.T) {
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	corsMw := New(WithOrigins("Foo")).Middleware()
-	wrapped := corsMw(emptyHandler)
+	wrapped := New(WithOrigins("Foo")).Wrap(emptyHandler)
 	recorder := httptest.NewRecorder()
 	wrapped.ServeHTTP(recorder, nil)
 	validateHeaders("Foo", "", "", "", recorder, t)
@@ -28,8 +26,7 @@ func TestOrigin(t *testing.T) {
 
 func TestOrigins(t *testing.T) {
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	corsMw := New(WithOrigins("Foo", "Bar")).Middleware()
-	wrapped := corsMw(emptyHandler)
+	wrapped := New(WithOrigins("Foo", "Bar")).Wrap(emptyHandler)
 	recorder := httptest.NewRecorder()
 	wrapped.ServeHTTP(recorder, nil)
 	validateHeaders("Foo, Bar", "", "", "", recorder, t)
@@ -37,8 +34,8 @@ func TestOrigins(t *testing.T) {
 
 func TestMethod(t *testing.T) {
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	corsMw := New(WithMethods(http.MethodPut)).Middleware()
-	wrapped := corsMw(emptyHandler)
+	corsMw := New(WithMethods(http.MethodPut))
+	wrapped := corsMw.Wrap(emptyHandler)
 	recorder := httptest.NewRecorder()
 	wrapped.ServeHTTP(recorder, nil)
 	validateHeaders("", http.MethodPut, "", "", recorder, t)
@@ -46,8 +43,8 @@ func TestMethod(t *testing.T) {
 
 func TestMethods(t *testing.T) {
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	corsMw := New(WithMethods(http.MethodDelete, http.MethodPost)).Middleware()
-	wrapped := corsMw(emptyHandler)
+	corsMw := New(WithMethods(http.MethodDelete, http.MethodPost))
+	wrapped := corsMw.Wrap(emptyHandler)
 	recorder := httptest.NewRecorder()
 	wrapped.ServeHTTP(recorder, nil)
 	validateHeaders("", fmt.Sprintf("%s, %s", http.MethodDelete, http.MethodPost), "", "", recorder, t)
@@ -55,8 +52,8 @@ func TestMethods(t *testing.T) {
 
 func TestHeader(t *testing.T) {
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	corsMw := New(WithHeaders("X-Foo")).Middleware()
-	wrapped := corsMw(emptyHandler)
+	corsMw := New(WithHeaders("X-Foo"))
+	wrapped := corsMw.Wrap(emptyHandler)
 	recorder := httptest.NewRecorder()
 	wrapped.ServeHTTP(recorder, nil)
 	validateHeaders("", "", "X-Foo", "", recorder, t)
@@ -64,8 +61,8 @@ func TestHeader(t *testing.T) {
 
 func TestHeaders(t *testing.T) {
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	corsMw := New(WithHeaders("X-Foo", "X-Bar")).Middleware()
-	wrapped := corsMw(emptyHandler)
+	corsMw := New(WithHeaders("X-Foo", "X-Bar"))
+	wrapped := corsMw.Wrap(emptyHandler)
 	recorder := httptest.NewRecorder()
 	wrapped.ServeHTTP(recorder, nil)
 	validateHeaders("", "", "X-Foo, X-Bar", "", recorder, t)
@@ -73,8 +70,8 @@ func TestHeaders(t *testing.T) {
 
 func TestAge(t *testing.T) {
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	corsMw := New(WithMaxAge(time.Hour)).Middleware()
-	wrapped := corsMw(emptyHandler)
+	corsMw := New(WithMaxAge(time.Hour))
+	wrapped := corsMw.Wrap(emptyHandler)
 	recorder := httptest.NewRecorder()
 	req, err := http.NewRequest(http.MethodOptions, "", nil)
 	if err != nil {

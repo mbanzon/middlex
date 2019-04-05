@@ -2,8 +2,6 @@ package header
 
 import (
 	"net/http"
-
-	"github.com/mbanzon/middlex/v1"
 )
 
 // Header allows wrapping of handlers to provide a structured way of adding
@@ -39,25 +37,23 @@ func New(config ...ConfigFunc) *Header {
 
 // Middleware returns the middlex.Middleware for the Header that can be
 // used to wrap handlers.
-func (hm *Header) Middleware() middlex.Middleware {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			for header, value := range hm.staticHeaders {
-				w.Header().Add(header, value)
+func (hm *Header) Wrap(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for header, value := range hm.staticHeaders {
+			w.Header().Add(header, value)
+		}
+		for _, hFn := range hm.dynamicHeaderFuncs {
+			header, value := hFn(r)
+			w.Header().Add(header, value)
+		}
+		for _, hMFn := range hm.dynamicMultiHeaderFuncs {
+			headers := hMFn(r)
+			for h, v := range headers {
+				w.Header().Add(h, v)
 			}
-			for _, hFn := range hm.dynamicHeaderFuncs {
-				header, value := hFn(r)
-				w.Header().Add(header, value)
-			}
-			for _, hMFn := range hm.dynamicMultiHeaderFuncs {
-				headers := hMFn(r)
-				for h, v := range headers {
-					w.Header().Add(h, v)
-				}
-			}
-			h.ServeHTTP(w, r)
-		})
-	}
+		}
+		h.ServeHTTP(w, r)
+	})
 }
 
 func WithDynamicHeaderFunc(dFn DynamicHeaderFunction) ConfigFunc {

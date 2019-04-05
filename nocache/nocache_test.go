@@ -8,7 +8,7 @@ import (
 
 func TestNocaching(t *testing.T) {
 	empty := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	noCache := New().Middleware()(empty)
+	noCache := New().Wrap(empty)
 
 	rec := httptest.NewRecorder()
 	req, err := http.NewRequest(http.MethodGet, "/", nil)
@@ -32,7 +32,7 @@ func TestNocaching(t *testing.T) {
 
 func TestOptionsRequest(t *testing.T) {
 	empty := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	noCache := New().Middleware()(empty)
+	noCache := New().Wrap(empty)
 
 	rec := httptest.NewRecorder()
 	req, err := http.NewRequest(http.MethodOptions, "/", nil)

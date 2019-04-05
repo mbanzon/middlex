@@ -4,8 +4,6 @@ import (
 	"net"
 	"net/http"
 	"sync"
-
-	"github.com/mbanzon/middlex/v1"
 )
 
 type UserCount struct {
@@ -56,19 +54,17 @@ func (u *UserCount) ResetAll() {
 	u.counts = make(map[string]int64)
 }
 
-func (u *UserCount) Middleware() middlex.Middleware {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user := u.userResolveFunc(r)
-			u.mutex.Lock()
-			count := u.counts[user]
-			count++
-			u.counts[user] = count
-			u.mutex.Unlock()
+func (u *UserCount) Wrap(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := u.userResolveFunc(r)
+		u.mutex.Lock()
+		count := u.counts[user]
+		count++
+		u.counts[user] = count
+		u.mutex.Unlock()
 
-			h.ServeHTTP(w, r)
-		})
-	}
+		h.ServeHTTP(w, r)
+	})
 }
 
 func WithCustomResolver(fn ResolverFunc) ConfigFunc {

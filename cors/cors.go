@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/mbanzon/middlex/v1"
 )
 
 // Cors holds the functions and data configured and provide the middleware
@@ -38,30 +36,28 @@ func New(configs ...ConfigFunc) *Cors {
 // Middleware returns a middlex.Middleware that uses the Cors instance
 // to provide a wrapper around a http.Handler that adds the headers needed
 // (based on the configuration).
-func (c *Cors) Middleware() middlex.Middleware {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if len(c.allowedOrigins) > 0 {
-				w.Header().Add("Access-Control-Allow-Origin", strings.Join(c.allowedOrigins, ", "))
-			}
-			if len(c.allowedMethods) > 0 {
-				w.Header().Add("Access-Control-Allow-Methods", strings.Join(c.allowedMethods, ", "))
-			}
-			if len(c.allowedHeaders) > 0 {
-				w.Header().Add("Access-Control-Allow-Headers", strings.Join(c.allowedHeaders, ", "))
-			}
+func (c *Cors) Wrap(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if len(c.allowedOrigins) > 0 {
+			w.Header().Add("Access-Control-Allow-Origin", strings.Join(c.allowedOrigins, ", "))
+		}
+		if len(c.allowedMethods) > 0 {
+			w.Header().Add("Access-Control-Allow-Methods", strings.Join(c.allowedMethods, ", "))
+		}
+		if len(c.allowedHeaders) > 0 {
+			w.Header().Add("Access-Control-Allow-Headers", strings.Join(c.allowedHeaders, ", "))
+		}
 
-			if r != nil && r.Method == http.MethodOptions {
-				if c.maxAge > 0 {
-					w.Header().Add("Access-Control-Max-Age", fmt.Sprint(int(c.maxAge.Seconds())))
-				}
-				w.WriteHeader(http.StatusNoContent)
-				return
+		if r != nil && r.Method == http.MethodOptions {
+			if c.maxAge > 0 {
+				w.Header().Add("Access-Control-Max-Age", fmt.Sprint(int(c.maxAge.Seconds())))
 			}
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 
-			h.ServeHTTP(w, r)
-		})
-	}
+		h.ServeHTTP(w, r)
+	})
 }
 
 // WithOrigins returns a ConfigFunc that configures the Cors to output a

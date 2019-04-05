@@ -20,8 +20,7 @@ func TestSingleTimer(t *testing.T) {
 	})
 
 	timer := New()
-	wrapper := timer.Middleware()
-	wrapped := wrapper(handler)
+	wrapped := timer.Wrap(handler)
 
 	for i := 0; i < 100; i++ {
 		wrapped.ServeHTTP(nil, nil)
@@ -78,8 +77,7 @@ func TestTimerWithEmitter(t *testing.T) {
 	wg.Add(1)
 
 	timer := New(WithEmitter(emitFn, 200*time.Millisecond))
-	wrapper := timer.Middleware()
-	wrapped := wrapper(handler)
+	wrapped := timer.Wrap(handler)
 
 	for i := 0; i < 100; i++ {
 		wrapped.ServeHTTP(nil, nil)
@@ -122,8 +120,7 @@ func TestTimerWithEmitReset(t *testing.T) {
 	wg.Add(1)
 
 	timer := New(WithResetEmitter(emitFn, 200*time.Millisecond))
-	wrapper := timer.Middleware()
-	wrapped := wrapper(handler)
+	wrapped := timer.Wrap(handler)
 
 	for i := 0; i < 100; i++ {
 		wrapped.ServeHTTP(nil, nil)

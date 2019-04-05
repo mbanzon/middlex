@@ -3,7 +3,6 @@ package nocache
 import (
 	"net/http"
 
-	"github.com/mbanzon/middlex/v1"
 	"github.com/mbanzon/middlex/v1/header"
 )
 
@@ -14,7 +13,7 @@ func New() *NoCache {
 	return nc
 }
 
-func (n *NoCache) Middleware() middlex.Middleware {
+func (n *NoCache) Wrap(h http.Handler) http.Handler {
 	noCacheHeaders := make(map[string]string)
 	noCacheHeaders["Cache-Control"] = "no-cache, no-store, must-revalidate"
 	noCacheHeaders["Pragma"] = "no-cache"
@@ -25,5 +24,5 @@ func (n *NoCache) Middleware() middlex.Middleware {
 			return noCacheHeaders
 		}
 		return nil
-	})).Middleware()
+	})).Wrap(h)
 }

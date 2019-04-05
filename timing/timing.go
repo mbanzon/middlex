@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"sync"
 	"time"
-
-	"github.com/mbanzon/middlex/v1"
 )
 
 var (
@@ -19,18 +17,16 @@ type Timer struct {
 	mutex *sync.Mutex
 }
 
-func (t *Timer) Middleware() middlex.Middleware {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
-			h.ServeHTTP(w, r)
-			end := time.Now()
-			t.mutex.Lock()
-			t.count++
-			t.total += end.Sub(start)
-			t.mutex.Unlock()
-		})
-	}
+func (t *Timer) Wrap(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		h.ServeHTTP(w, r)
+		end := time.Now()
+		t.mutex.Lock()
+		t.count++
+		t.total += end.Sub(start)
+		t.mutex.Unlock()
+	})
 }
 
 func New(configs ...ConfigFunc) *Timer {
