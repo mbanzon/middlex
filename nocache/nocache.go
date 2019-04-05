@@ -3,7 +3,7 @@ package nocache
 import (
 	"net/http"
 
-	"github.com/mbanzon/middlex/v2/header"
+	"github.com/mbanzon/middlex/v3/header"
 )
 
 type NoCache struct{}
