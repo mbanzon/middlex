@@ -33,9 +33,6 @@ func New(configs ...ConfigFunc) *Cors {
 	return c
 }
 
-// Middleware returns a middlex.Middleware that uses the Cors instance
-// to provide a wrapper around a http.Handler that adds the headers needed
-// (based on the configuration).
 func (c *Cors) Wrap(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if len(c.allowedOrigins) > 0 {
