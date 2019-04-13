@@ -2,8 +2,6 @@ package nocache
 
 import (
 	"net/http"
-
-	"github.com/mbanzon/middlex/v3/header"
 )
 
 type NoCache struct{}
@@ -14,15 +12,11 @@ func New() *NoCache {
 }
 
 func (n *NoCache) Wrap(h http.Handler) http.Handler {
-	noCacheHeaders := make(map[string]string)
-	noCacheHeaders["Cache-Control"] = "no-cache, no-store, must-revalidate"
-	noCacheHeaders["Pragma"] = "no-cache"
-	noCacheHeaders["Expires"] = "0"
-
-	return header.New(header.WithDynamicMultiHeaderFunc(func(r *http.Request) (headers map[string]string) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodOptions {
-			return noCacheHeaders
+			w.Header().Add("Cache-Control", "no-cache, no-store, must-revalidate")
+			w.Header().Add("Pragma", "no-cache")
+			w.Header().Add("Expires", "0")
 		}
-		return nil
-	})).Wrap(h)
+	})
 }
