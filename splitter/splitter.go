@@ -52,12 +52,8 @@ func (sh *Splitter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		hitHandler := false
 		for p, h := range sh.splits {
 			if path == p {
-				untrimmed := r.RequestURI
-				trimmed := untrimmed[len("/"+path):]
-				r.RequestURI, r.URL.Path = trimmed, trimmed
 				hitHandler = true
 				h.ServeHTTP(w, r)
-				r.RequestURI, r.URL.Path = untrimmed, untrimmed
 				// TODO: should we break here?
 			}
 		}
@@ -81,9 +77,11 @@ func popURIArg(r *http.Request) string {
 	if index != -1 {
 		arg = uri[:index]
 		r.RequestURI = uri[index:]
+		r.URL.Path = r.RequestURI
 	} else {
 		arg = uri
 		r.RequestURI = ""
+		r.URL.Path = ""
 	}
 	return arg
 }
