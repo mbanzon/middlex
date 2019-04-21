@@ -18,5 +18,6 @@ func (n *NoCache) Wrap(h http.Handler) http.Handler {
 			w.Header().Add("Pragma", "no-cache")
 			w.Header().Add("Expires", "0")
 		}
+		h.ServeHTTP(w, r)
 	})
 }
