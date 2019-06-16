@@ -69,7 +69,7 @@ func popURIArg(r *http.Request) string {
 	uri := strings.Trim(r.RequestURI, "/")
 
 	if uri == "" {
-		return ""
+		return "/"
 	}
 
 	var arg string
@@ -78,10 +78,15 @@ func popURIArg(r *http.Request) string {
 		arg = uri[:index]
 		r.RequestURI = uri[index:]
 		r.URL.Path = r.RequestURI
+		if r.RequestURI == "" {
+			r.RequestURI = "/"
+			r.URL.Path = "/"
+		}
 	} else {
 		arg = uri
-		r.RequestURI = ""
-		r.URL.Path = ""
+		r.RequestURI = "/"
+		r.URL.Path = "/"
 	}
+
 	return arg
 }
