@@ -79,7 +79,7 @@ func setupEmptyWrapped(t *testing.T, method, url string, data io.Reader, c ...Co
 
 	empty := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	auther := New(c...)
-	wrapped := auther.Middleware()(empty)
+	wrapped := auther.Wrap(empty)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(method, url, data)
@@ -94,6 +94,6 @@ func setupWrapped(t *testing.T, f func(), c ...ConfigFunc) http.Handler {
 		f()
 	})
 	auther := New(c...)
-	wrapped := auther.Middleware()(empty)
+	wrapped := auther.Wrap(empty)
 	return wrapped
 }

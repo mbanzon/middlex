@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/mbanzon/middlex"
 )
 
 // ConfigFunc is the type of function used to configure the Authentication
@@ -185,54 +183,52 @@ func WithExcludedPrefixes(prefixes ...string) ConfigFunc {
 	}
 }
 
-// Middleware retuns the middlex.Middleware for the Authentication.
+// Wrap retuns the http.Handler for the Authentication.
 // The returned value can be used to wrap a http.Handler in this
 // Authentication.
-func (a *Authentication) Middleware() middlex.Middleware {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if a.acceptOptions && r.Method == http.MethodOptions {
+func (a *Authentication) Wrap(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if a.acceptOptions && r.Method == http.MethodOptions {
+			h.ServeHTTP(w, r)
+			return
+		}
+
+		if a.loginFn != nil && r.RequestURI == a.loginPath && r.Method == http.MethodPost {
+			authorized, token := a.loginFn(r)
+			a.loginResponsePacker(authorized, token, w)
+			return
+		}
+
+		for _, ex := range a.excludedPaths {
+			if ex == r.RequestURI {
 				h.ServeHTTP(w, r)
 				return
 			}
+		}
 
-			if a.loginFn != nil && r.RequestURI == a.loginPath && r.Method == http.MethodPost {
-				authorized, token := a.loginFn(r)
-				a.loginResponsePacker(authorized, token, w)
+		for _, exp := range a.excludedPrefixes {
+			if strings.HasPrefix(r.RequestURI, exp) {
+				h.ServeHTTP(w, r)
+				return
+			}
+		}
+
+		hasAuthHeader, token := a.tokenExFn(r)
+
+		if hasAuthHeader {
+			if a.logoutFn != nil && r.RequestURI == a.logoutPath && r.Method == http.MethodGet {
+				a.logoutFn(token)
 				return
 			}
 
-			for _, ex := range a.excludedPaths {
-				if ex == r.RequestURI {
-					h.ServeHTTP(w, r)
-					return
-				}
+			if a.checkFn != nil && a.checkFn(token) {
+				h.ServeHTTP(w, r)
+				return
 			}
+		}
 
-			for _, exp := range a.excludedPrefixes {
-				if strings.HasPrefix(r.RequestURI, exp) {
-					h.ServeHTTP(w, r)
-					return
-				}
-			}
-
-			hasAuthHeader, token := a.tokenExFn(r)
-
-			if hasAuthHeader {
-				if a.logoutFn != nil && r.RequestURI == a.logoutPath && r.Method == http.MethodGet {
-					a.logoutFn(token)
-					return
-				}
-
-				if a.checkFn != nil && a.checkFn(token) {
-					h.ServeHTTP(w, r)
-					return
-				}
-			}
-
-			http.Error(w, "", http.StatusUnauthorized)
-		})
-	}
+		http.Error(w, "", http.StatusUnauthorized)
+	})
 }
 
 func extractBearerToken(r *http.Request) (found bool, token string) {
