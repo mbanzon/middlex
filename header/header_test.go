@@ -8,8 +8,8 @@ import (
 
 func TestSingleStaticHeader(t *testing.T) {
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	hMw := New(WithStaticHeader("X-My-Header", "ValueValueValue")).Middleware()
-	h := hMw(emptyHandler)
+	hMw := New(WithStaticHeader("X-My-Header", "ValueValueValue"))
+	h := hMw.Wrap(emptyHandler)
 
 	recorder := httptest.NewRecorder()
 	h.ServeHTTP(recorder, nil)
@@ -27,8 +27,8 @@ func TestMultipleStaticHeaders(t *testing.T) {
 	headers["X-My-Header3"] = "MyValue3"
 
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	hMw := New(WithStaticHeaders(headers)).Middleware()
-	h := hMw(emptyHandler)
+	hMw := New(WithStaticHeaders(headers))
+	h := hMw.Wrap(emptyHandler)
 
 	recorder := httptest.NewRecorder()
 	h.ServeHTTP(recorder, nil)
@@ -55,8 +55,8 @@ func TestDynamicHeaderFunc(t *testing.T) {
 	}
 
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	hMw := New(WithDynamicHeaderFunc(hFn)).Middleware()
-	h := hMw(emptyHandler)
+	hMw := New(WithDynamicHeaderFunc(hFn))
+	h := hMw.Wrap(emptyHandler)
 
 	recorder := httptest.NewRecorder()
 	h.ServeHTTP(recorder, nil)
@@ -76,8 +76,8 @@ func TestDynamicMultiHeaderFunc(t *testing.T) {
 	}
 
 	emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	hMw := New(WithDynamicMultiHeaderFunc(hFn)).Middleware()
-	h := hMw(emptyHandler)
+	hMw := New(WithDynamicMultiHeaderFunc(hFn))
+	h := hMw.Wrap(emptyHandler)
 
 	recorder := httptest.NewRecorder()
 	h.ServeHTTP(recorder, nil)

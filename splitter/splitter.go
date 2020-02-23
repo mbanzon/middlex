@@ -47,6 +47,7 @@ func (sh *Splitter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if strings.HasPrefix(r.RequestURI, sh.prefix) {
 		originalURI := r.RequestURI
 		r.RequestURI = r.RequestURI[len(sh.prefix):]
+		r.URL.Path = r.RequestURI
 		path := popURIArg(r)
 		hitHandler := false
 		for p, h := range sh.splits {
@@ -57,6 +58,7 @@ func (sh *Splitter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		r.RequestURI = originalURI
+		r.URL.Path = originalURI
 		if !hitHandler && sh.defaultHandler != nil {
 			sh.defaultHandler.ServeHTTP(w, r)
 		}
@@ -67,7 +69,7 @@ func popURIArg(r *http.Request) string {
 	uri := strings.Trim(r.RequestURI, "/")
 
 	if uri == "" {
-		return ""
+		return "/"
 	}
 
 	var arg string
@@ -75,9 +77,16 @@ func popURIArg(r *http.Request) string {
 	if index != -1 {
 		arg = uri[:index]
 		r.RequestURI = uri[index:]
+		r.URL.Path = r.RequestURI
+		if r.RequestURI == "" {
+			r.RequestURI = "/"
+			r.URL.Path = "/"
+		}
 	} else {
 		arg = uri
-		r.RequestURI = ""
+		r.RequestURI = "/"
+		r.URL.Path = "/"
 	}
+
 	return arg
 }

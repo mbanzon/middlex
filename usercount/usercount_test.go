@@ -9,7 +9,7 @@ import (
 func TestUserCountNoResolver(t *testing.T) {
 	empty := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	counter := New()
-	wrapped := counter.Middleware()(empty)
+	wrapped := counter.Wrap(empty)
 
 	for i := 0; i < 1000; i++ {
 		wrapped.ServeHTTP(nil, nil)
@@ -27,7 +27,7 @@ func TestUserCountNoResolver(t *testing.T) {
 func TestUserCountIPResolver(t *testing.T) {
 	empty := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	counter := New(WithIPAddressResolver())
-	wrapped := counter.Middleware()(empty)
+	wrapped := counter.Wrap(empty)
 
 	for i := 0; i < 1000; i++ {
 		for ip := 0; ip < 10; ip++ {
@@ -62,7 +62,7 @@ func TestUserCountIPResolver(t *testing.T) {
 func TestUserCountAuthenticationResolver(t *testing.T) {
 	empty := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	counter := New(WithAuthenticationResolver())
-	wrapped := counter.Middleware()(empty)
+	wrapped := counter.Wrap(empty)
 
 	for i := 0; i < 1000; i++ {
 		for ip := 0; ip < 10; ip++ {
@@ -101,7 +101,7 @@ func TestUserCountAuthenticationResolver(t *testing.T) {
 func TestUserCountFailingIPResolver(t *testing.T) {
 	empty := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	counter := New(WithIPAddressResolver())
-	wrapped := counter.Middleware()(empty)
+	wrapped := counter.Wrap(empty)
 
 	for i := 0; i < 1000; i++ {
 		req, err := http.NewRequest(http.MethodOptions, "/", nil)
@@ -123,7 +123,7 @@ func TestUserCountFailingIPResolver(t *testing.T) {
 func TestUserCountCookieResolver(t *testing.T) {
 	empty := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	counter := New(WithCookieResolver("UserCookie"))
-	wrapped := counter.Middleware()(empty)
+	wrapped := counter.Wrap(empty)
 
 	for i := 0; i < 1000; i++ {
 		for c := 0; c < 10; c++ {
@@ -153,7 +153,7 @@ func TestUserCountCookieResolver(t *testing.T) {
 func TestUserCountFailingCookieResolver(t *testing.T) {
 	empty := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	counter := New(WithCookieResolver("UserCookie"))
-	wrapped := counter.Middleware()(empty)
+	wrapped := counter.Wrap(empty)
 
 	for i := 0; i < 1000; i++ {
 		req, err := http.NewRequest(http.MethodOptions, "/", nil)
@@ -178,7 +178,7 @@ func TestUserCountCustomResolver(t *testing.T) {
 		return ""
 	}
 	counter := New(WithCustomResolver(resolver))
-	wrapped := counter.Middleware()(empty)
+	wrapped := counter.Wrap(empty)
 
 	for i := 0; i < 1000; i++ {
 		req, err := http.NewRequest(http.MethodOptions, "/", nil)

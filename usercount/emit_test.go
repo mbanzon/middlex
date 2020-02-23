@@ -16,7 +16,7 @@ func TestUserCountEmitting(t *testing.T) {
 
 	empty := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	counter := New(WithEmitFunction(emitFn, 100*time.Millisecond), WithHeaderResolver("X-User"))
-	wrapped := counter.Middleware()(empty)
+	wrapped := counter.Wrap(empty)
 
 	for u := 0; u < 10; u++ {
 		for i := 0; i < 1000; i++ {

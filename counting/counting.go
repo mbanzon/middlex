@@ -3,8 +3,6 @@ package counting
 import (
 	"net/http"
 	"sync"
-
-	"github.com/mbanzon/middlex"
 )
 
 // Counter allows wrapping of handlers to enable counting of requests.
@@ -15,16 +13,13 @@ type Counter struct {
 
 type ConfigFunc func(c *Counter)
 
-// Middleware returns the middlex.Middleware from this Counter.
-func (c *Counter) Middleware() middlex.Middleware {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			h.ServeHTTP(w, r)
-			c.mutex.Lock()
-			c.count++
-			c.mutex.Unlock()
-		})
-	}
+func (c *Counter) Wrap(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(w, r)
+		c.mutex.Lock()
+		c.count++
+		c.mutex.Unlock()
+	})
 }
 
 // New creates a new Counter with the given configuration applied.
