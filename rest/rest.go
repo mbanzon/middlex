@@ -35,15 +35,15 @@ func (id RESTResourceID) GetAsString() (string, error) {
 
 type GetAllFn func() ([]interface{}, error)
 
-type GetOneFn func(int64) (interface{}, error)
+type GetOneFn func(RESTResourceID) (interface{}, error)
 
-type CreateFn func(interface{}) (int64, interface{}, error)
+type CreateFn func(interface{}) (RESTResourceID, interface{}, error)
 
-type UpdateFn func(int64, interface{}) (interface{}, error)
+type UpdateFn func(RESTResourceID, interface{}) (interface{}, error)
 
-type DeleteFn func(int64) error
+type DeleteFn func(RESTResourceID) error
 
-type ValidateFn func(string, RESTAction, int64) (bool, error)
+type ValidateFn func(RESTAction, RESTResourceID, *http.Request) (bool, error)
 
 type ConfigFunc func(*RESTHandler)
 
