@@ -51,8 +51,7 @@ func New(name string) *RESTHandler {
 }
 
 func (h *RESTHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	id := RESTResourceID{}
-	// TODO: initialize ID
+	id := ParseRESTResourceID(r.RequestURI, h.resourceName)
 
 	if id.Present() {
 		switch r.Method {
