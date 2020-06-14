@@ -16,30 +16,15 @@ const (
 )
 
 type RESTHandler struct {
-	resourceName string
-	GetAll       GetAllFn
-	GetOne       GetOneFn
-	Create       CreateFn
-	Update       UpdateFn
-	Delete       DeleteFn
-
-	ValidateCreate ValidateCreateFn
-	ValidateUpdate ValidateUpdateFn
+	resourceName   string
+	GetAll         func() ([]interface{}, error)
+	GetOne         func(RESTResourceID) (interface{}, error)
+	Create         func(interface{}) (RESTResourceID, interface{}, error)
+	Update         func(RESTResourceID, interface{}) (interface{}, error)
+	Delete         func(RESTResourceID) error
+	ValidateCreate func(json.RawMessage) (bool, interface{}, error)
+	ValidateUpdate func(RESTResourceID, json.RawMessage) (bool, interface{}, error)
 }
-
-type GetAllFn func() ([]interface{}, error)
-
-type GetOneFn func(RESTResourceID) (interface{}, error)
-
-type CreateFn func(interface{}) (RESTResourceID, interface{}, error)
-
-type UpdateFn func(RESTResourceID, interface{}) (interface{}, error)
-
-type DeleteFn func(RESTResourceID) error
-
-type ValidateCreateFn func(json.RawMessage) (bool, interface{}, error)
-
-type ValidateUpdateFn func(RESTResourceID, json.RawMessage) (bool, interface{}, error)
 
 type ConfigFunc func(*RESTHandler)
 
